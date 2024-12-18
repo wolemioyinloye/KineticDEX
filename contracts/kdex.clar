@@ -258,3 +258,170 @@
     (ok true)
   )
 )
+
+;; Function to Add Collateral
+(define-public (add-collateral (collateral-amount uint))
+  (let 
+    (
+      ;; Retrieve the current borrowing position
+      (current-position 
+        (unwrap! 
+          (map-get? borrowing-positions {user: tx-sender}) 
+          err-unauthorized
+        )
+      )
+      
+      ;; Calculate new total collateral
+      (new-total-collateral 
+        (+ 
+          (get collateral-amount current-position) 
+          collateral-amount
+        )
+      )
+      
+      ;; Retrieve current borrowed amount (with accrued interest)
+      (current-borrowed 
+        (get borrowed-amount current-position)
+      )
+    )
+    
+    ;; Validate collateral addition
+    (asserts! (> collateral-amount u0) err-insufficient-balance)
+    
+    ;; Transfer collateral tokens to contract
+    (try! 
+      (ft-transfer? lend-token collateral-amount tx-sender (as-contract tx-sender))
+    )
+    
+    ;; Check collateralization ratio after addition
+    (asserts! 
+      (>= 
+        (/ (* new-total-collateral u100) current-borrowed) 
+        min-collateral-ratio
+      ) 
+      err-insufficient-collateral
+    )
+    
+    ;; Update borrowing position with new collateral
+    (map-set borrowing-positions 
+      {user: tx-sender}
+      {
+        borrowed-amount: current-borrowed,
+        collateral-amount: new-total-collateral,
+        interest-rate: (get interest-rate current-position),
+        last-updated-block: block-height,
+        total-accrued-interest: (get total-accrued-interest current-position)
+      }
+    )
+    
+    (ok true)
+  )
+)
+
+;; Function to Remove Collateral
+(define-public (remove-collateral (collateral-amount uint))
+  (let 
+    (
+      ;; Update borrowing position to accrue latest interest
+      (updated-position (try! (update-borrowing-position tx-sender)))
+      
+      ;; Retrieve the current borrowing position
+      (current-position 
+        (unwrap! 
+          (map-get? borrowing-positions {user: tx-sender}) 
+          err-unauthorized
+        )
+      )
+      
+      ;; Calculate new total collateral
+      (current-total-collateral (get collateral-amount current-position))
+      
+      ;; Ensure enough collateral remains
+      (new-total-collateral (- current-total-collateral collateral-amount))
+      
+      ;; Get current borrowed amount (with accrued interest)
+      (current-borrowed 
+        (get borrowed-amount current-position)
+      )
+    )
+    
+    ;; Validate collateral removal
+    (asserts! (> collateral-amount u0) err-insufficient-balance)
+    (asserts! (<= collateral-amount current-total-collateral) err-insufficient-collateral)
+    
+    ;; Check collateralization ratio after removal
+    (asserts! 
+      (>= 
+        (/ (* new-total-collateral u100) current-borrowed) 
+        min-collateral-ratio
+      ) 
+      err-insufficient-collateral
+    )
+    
+    ;; Update borrowing position with reduced collateral
+    (map-set borrowing-positions 
+      {user: tx-sender}
+      {
+        borrowed-amount: current-borrowed,
+        collateral-amount: new-total-collateral,
+        interest-rate: (get interest-rate current-position),
+        last-updated-block: block-height,
+        total-accrued-interest: (get total-accrued-interest current-position)
+      }
+    )
+    
+    ;; Transfer collateral tokens back to user
+    (try! 
+      (as-contract 
+        (ft-transfer? lend-token collateral-amount tx-sender tx-sender)
+      )
+    )
+    
+    (ok true)
+  )
+)
+
+;; Function to Liquidate Undercollateralized Positions
+(define-public (liquidate (user principal))
+  (let 
+    (
+      ;; Update borrowing position to accrue latest interest
+      (updated-position (try! (update-borrowing-position user)))
+      
+      ;; Retrieve the borrowing position to be liquidated
+      (current-position 
+        (unwrap! 
+          (map-get? borrowing-positions {user: user}) 
+          err-unauthorized
+        )
+      )
+      
+      ;; Current borrowed amount and collateral
+      (current-borrowed (get borrowed-amount current-position))
+      (current-collateral (get collateral-amount current-position))
+      
+      ;; Calculate current collateralization ratio
+      (current-ratio 
+        (/ (* current-collateral u100) current-borrowed)
+      )
+    )
+    
+    ;; Ensure the position is undercollateralized
+    (asserts! (< current-ratio min-collateral-ratio) err-insufficient-collateral)
+    
+    ;; Ensure only authorized liquidator (contract owner) can trigger liquidation
+    (asserts! (is-eq tx-sender contract-owner) err-unauthorized)
+    
+    ;; Transfer remaining collateral to contract owner
+    (try! 
+      (as-contract 
+        (ft-transfer? lend-token current-collateral tx-sender contract-owner)
+      )
+    )
+    
+    ;; Remove the liquidated borrowing position
+    (map-delete borrowing-positions {user: user})
+    
+    (ok true)
+  )
+)
