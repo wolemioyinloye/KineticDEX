@@ -1,54 +1,69 @@
 # KineticDEX 🚀
 
 ## Overview
-KineticDEX is a cutting-edge decentralized exchange (DEX) built on the Stacks blockchain, leveraging Bitcoin's security and Clarity smart contract capabilities to provide a robust, transparent, and user-friendly trading platform.
+KineticDEX is an advanced decentralized lending and exchange platform built on the Stacks blockchain, leveraging Bitcoin's security and Clarity smart contract capabilities to provide a robust, transparent, and user-friendly DeFi experience.
 
 ## 🌟 Key Features
 
-### Decentralized Trading
-- Peer-to-peer token swapping
-- Non-custodial trading mechanism
-- Direct wallet integration
+### Lending and Borrowing
+- Dynamic interest rate calculations
+- Block-based interest accrual
+- Flexible deposit and withdrawal mechanisms
+- Partial loan repayment support
+- Advanced collateral management
 
-### Advanced Functionality
-- Low transaction fees
-- Instant token exchanges
-- Secure smart contract infrastructure
-- Bitcoin-backed asset trading
+### Comprehensive Risk Management
+- 150% minimum collateralization ratio
+- Maximum 70% loan-to-value protection
+- Liquidation mechanisms for undercollateralized positions
+- Real-time interest tracking
 
-## 🛠 Technology Stack
-- **Blockchain**: Stacks
-- **Smart Contract Language**: Clarity
-- **Development Tools**: 
-  - Clarinet
-  - Stacks.js
-  - Hiro Wallet
+## 🛠 Core Functionalities
+
+### Lending Mechanisms
+- Deposit tokens with dynamic interest
+- Withdraw principal and accumulated interest
+- Track total accumulated interest
+- Block-height based interest calculations
+
+### Borrowing Features
+- Partial loan repayments
+- Collateral addition and removal
+- Interest accrual on borrowed amounts
+- Position health monitoring
+
+### Collateral Management
+- Add and remove collateral dynamically
+- Real-time collateralization ratio checks
+- Liquidation protection
+- Secure collateral transfers
 
 ## 🔧 Smart Contract Architecture
 
-### Core Contracts
-- `lending-contract.clar`: Implements lending and borrowing mechanisms
-- Token swap logic
-- Collateralization and risk management
-- Interest rate calculations
-
-### Security Features
-- 150% minimum collateralization ratio
-- Maximum 70% loan-to-value protection
-- Comprehensive error handling
+### Core Contract Components
+- Lending deposit tracking
+- Borrowing position management
+- Dynamic interest calculations
+- Collateral health monitoring
 - Secure token transfer mechanisms
+
+### Security Specifications
+- Comprehensive error handling
+- Strict collateralization requirements
+- Block-level precision in interest calculations
+- Secure principal and interest management
 
 ## 📦 Installation
 
 ### Prerequisites
-- Node.js (v16+)
 - Stacks CLI
 - Hiro Wallet
+- Clarinet
 
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/KineticDEX.git
+git clone https://github.com/wolemioyinloye/KineticDEX.git
 
 # Navigate to project directory
 cd KineticDEX
@@ -63,35 +78,40 @@ clarinet check
 clarinet console
 ```
 
-## 🚀 Deployment
-- Local Testing: `clarinet integrate`
-- Testnet Deployment: Configure network settings
-- Mainnet Deployment: Requires STX tokens for gas fees
-
-## 🔒 Security
+## 🔒 Security Measures
+- 150% collateralization requirement
+- Block-height based interest calculations
+- Liquidation mechanisms
 - Comprehensive contract audits
-- Regular security assessments
-- Transparent development process
+- Real-time position monitoring
 
-## 🛡️ Risk Management
-- Collateralization protection
-- Interest rate stabilization
-- Fail-safe mechanisms
+## 🛡️ Risk Mitigation
+- Dynamic interest rate adjustments
+- Partial repayment flexibility
+- Collateral management tools
+- Undercollateralization protection
 
 ## 🔮 Future Roadmap
-- Cross-chain integrations
-- Advanced liquidity pools
-- Yield farming mechanisms
-- Enhanced trading features
+- Multi-token collateral support
+- Advanced yield optimization
+- Cross-chain lending mechanisms
+- Automated risk assessment tools
 
-## 👥 Contribution
+## 👥 Contribution Guidelines
 1. Fork the repository
 2. Create feature branch
-3. Commit changes
-4. Push to branch
-5. Create pull request
+3. Implement and test new features
+4. Ensure comprehensive test coverage
+5. Submit pull request with detailed description
 
-## 💡 Powered By
-- Stacks Blockchain
-- Bitcoin Security
-- Decentralized Finance Principles
+## 💡 Technical Highlights
+- Built on Stacks Blockchain
+- Clarity Smart Contract Language
+- Bitcoin-backed Security
+- Advanced DeFi Primitives
+
+## 📊 Key Technical Specifications
+- Base Interest Rate: 5% annually
+- Blocks per Year: 525,600
+- Maximum Loan-to-Value: 70%
+- Minimum Collateralization Ratio: 150%
