@@ -206,3 +206,55 @@
     (ok true)
   )
 )
+
+;; Partial Loan Repayment Function
+(define-public (partial-repayment (repayment-amount uint))
+  (let 
+    (
+      ;; Update the user's borrowing position to accrue latest interest
+      (updated-position (try! (update-borrowing-position tx-sender)))
+      
+      ;; Retrieve the current borrowing position
+      (current-position 
+        (unwrap! 
+          (map-get? borrowing-positions {user: tx-sender}) 
+          err-unauthorized
+        )
+      )
+      
+      ;; Get the current total borrowed amount (principal + accrued interest)
+      (current-total-borrowed (get borrowed-amount current-position))
+      
+      ;; Calculate remaining balance after repayment
+      (remaining-balance 
+        (if (>= current-total-borrowed repayment-amount)
+            (- current-total-borrowed repayment-amount)
+            u0
+        )
+      )
+    )
+    
+    ;; Validate repayment amount
+    (asserts! (> repayment-amount u0) err-insufficient-balance)
+    (asserts! (<= repayment-amount current-total-borrowed) err-over-borrowed)
+    
+    ;; Transfer tokens from user to contract
+    (try! 
+      (ft-transfer? lend-token repayment-amount tx-sender (as-contract tx-sender))
+    )
+    
+    ;; Update the borrowing position
+    (map-set borrowing-positions 
+      {user: tx-sender}
+      {
+        borrowed-amount: remaining-balance,
+        collateral-amount: (get collateral-amount current-position),
+        interest-rate: (get interest-rate current-position),
+        last-updated-block: block-height,
+        total-accrued-interest: (get total-accrued-interest current-position)
+      }
+    )
+    
+    (ok true)
+  )
+)
