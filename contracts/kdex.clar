@@ -163,3 +163,46 @@
   )
 )
 
+;; Withdrawal Function
+(define-public (withdraw (amount uint))
+  (let 
+    (
+      ;; Update the user's lending position to accrue latest interest
+      (updated-position (try! (update-lending-position tx-sender)))
+      
+      ;; Retrieve the current deposit information
+      (current-deposit 
+        (unwrap! 
+          (map-get? lending-deposits {user: tx-sender}) 
+          err-insufficient-balance
+        )
+      )
+      
+      ;; Get the current total amount (principal + accumulated interest)
+      (current-total-amount (get amount current-deposit))
+    )
+    
+    ;; Validate withdrawal amount
+    (asserts! (<= amount current-total-amount) err-insufficient-balance)
+    
+    ;; Update the lending deposit
+    (map-set lending-deposits 
+      {user: tx-sender}
+      {
+        amount: (- current-total-amount amount),
+        interest-rate: (get interest-rate current-deposit),
+        last-updated-block: block-height,
+        total-accumulated-interest: (get total-accumulated-interest current-deposit)
+      }
+    )
+    
+    ;; Transfer tokens back to the user
+    (try! 
+      (as-contract 
+        (ft-transfer? lend-token amount tx-sender tx-sender)
+      )
+    )
+    
+    (ok true)
+  )
+)
